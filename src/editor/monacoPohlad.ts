@@ -70,7 +70,9 @@ export function vytvorMonacoPohlad(hostitel: HTMLElement, aktivny: () => NazovSu
     }
   })
 
+  // CtrlCmd = Ctrl na Windows/Linux, ale Cmd na Macu – preto aj WinCtrl, nech Ctrl+Enter funguje všade
   editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => spustiTeraz())
+  editor.addCommand(monaco.KeyMod.WinCtrl | monaco.KeyCode.Enter, () => spustiTeraz())
 
   // Popis (slovenský JSDoc) v ponuke návrhov rovno rozbalený – inak je skrytý za „>“.
   // Interné API Monaca, preto v try/catch: keby sa v novej verzii zmenilo, nič sa nepokazí.

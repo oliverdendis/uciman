@@ -39,3 +39,14 @@ test('písanie v editore nehýbe panáčikom', async ({ page }) => {
   await page.keyboard.up('ArrowRight')
   expect(await x()).toBe(pred)
 })
+
+test('Ctrl+Enter spustí kód aj s chybou hneď naplno (nevloží nový riadok)', async ({ page }) => {
+  await page.goto('/?reset')
+  const riadky = page.locator('.monaco-editor .view-lines')
+  await riadky.getByText('120', { exact: true }).dblclick()
+  await page.keyboard.type('12x')
+  await page.keyboard.press('Control+Enter')
+  await expect(page.locator('.stav-behu')).toContainText('Chyba')
+  const kod = await page.evaluate(() => (window as any).uciman.subory.citaj('nastavenia.ts') as string)
+  expect(kod.split('\n')).toHaveLength(5) // 4 riadky + koncový – Ctrl+Enter nepridal nový riadok
+})

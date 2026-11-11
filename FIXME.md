@@ -70,7 +70,10 @@ Priebežný zoznam. Formát: `[ ]` otvorené, `[x]` vyriešené. Za pomlčkou je
       (alebo neotvorí `?reset`). Pre učiteľa: medzi skupinami stlačiť Reset. — M7
 
 ## Infra
-- [ ] Projekt nie je git repozitár. — M1
+- [x] Git: `main` na github.com/oliverdendis/uciman (verejný repozitár). — M1/M8
+- [ ] Napojiť Vercel na repozitár a po nasadení overiť: načítanie, Monaco, žiadne cudzie requesty. — M8
+- [x] Offline záloha: `npm run build` → `npx serve dist` overené v Chrome aj Firefoxe. — M8
+- [x] Na Macu `Ctrl+Enter` v Monacu vkladal nový riadok (Monaco mapuje Ctrl na Cmd) → pridaná aj skratka WinCtrl. — M8
 - [ ] **Veľkosť buildu:** Phaser 1,5 MB, Monaco 2,7 MB, TypeScript worker 6,9 MB (spolu ~12 MB,
       gzip ~3 MB). Hra sa spustí hneď, Monaco sa dočíta lenivo (~0,5 s lokálne). Overiť prvé
       načítanie na školskej sieti; pri 15 PC naraz zvážiť predhriatie (otvoriť stránku vopred). — M3
