@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="sk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Učiman – Oprav hru</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐞</text></svg>" />
+  </head>
+  <body>
+    <div id="app">
+      <section id="lavy">
+        <div id="fokus-pruh" class="bez-fokusu" aria-live="polite">
+          <span class="fokus-ikona">🖱️</span>
+          <span id="fokus-text">Klikni do hry, aby si mohol hrať</span>
+        </div>
+        <div id="hra" tabindex="0" aria-label="Hra – klikni sem a ovládaj šípkami"></div>
+        <div id="hud">
+          <span>Skóre: <b id="hud-skore">0</b></span>
+          <span class="hud-oddelovac">·</span>
+          <span>Životy: <b id="hud-zivoty"></b></span>
+          <span class="hud-oddelovac">·</span>
+          <span>Predmety: <b id="hud-predmety">—</b></span>
+          <span class="hud-napoveda">← → pohyb · ↑ / medzerník skok · Esc = späť do panela</span>
+        </div>
+      </section>
+      <aside id="panel"></aside>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
