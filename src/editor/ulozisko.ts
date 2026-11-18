@@ -1,7 +1,7 @@
 import { PORADIE_SUBOROV, type NazovSuboru } from '../defaults/subory'
 
 /** Verzia v kľúči: keď zmeníme bugové súbory, staré uložené kódy sa ignorujú. */
-export const KLUC_ULOZISKA = 'uciman:kod:v1'
+export const KLUC_ULOZISKA = 'uciman:kod:v2'
 
 type Obsah = Record<NazovSuboru, string>
 

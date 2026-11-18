@@ -22,14 +22,13 @@ export function vytvorKodZalozku(koren: HTMLElement): KodZalozka {
   koren.innerHTML = `
     <div class="subory" role="tablist">
       ${PORADIE_SUBOROV.map((n) => `<button class="subor" role="tab" data-subor="${n}">${n}</button>`).join('')}
-      <span class="subory-napoveda">Ctrl+Enter = spustiť</span>
     </div>
     <div class="editor-hostitel"><div class="editor-nacitava">Načítavam editor…</div></div>
     <div class="stav-behu" aria-live="polite"></div>`
 
   const hostitel = koren.querySelector<HTMLElement>('.editor-hostitel')!
   const suborTlacidla = [...koren.querySelectorAll<HTMLButtonElement>('.subor')]
-  let aktivny: NazovSuboru = 'nastavenia.ts'
+  let aktivny: NazovSuboru = 'settings.ts'
   let pohlad: Pohlad | null = null
   let posledneChyby: ChybaKodu[] = []
 

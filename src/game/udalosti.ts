@@ -14,7 +14,7 @@ export interface MapaUdalosti {
   smrt: { dovod: 'nepriatel' | 'priepast' }
   /** bol aktivovaný cheat */
   cheat: { kod: string }
-  /** študentský kód zavolal vypis() */
+  /** študentský kód zavolal print() */
   vypis: string
 }
 

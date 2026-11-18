@@ -1,54 +1,81 @@
 import type { VirtualnySubor } from '../runtime/subory'
 
-export type NazovSuboru = 'nastavenia.ts' | 'pravidla.ts' | 'cheaty.ts'
-export const PORADIE_SUBOROV: readonly NazovSuboru[] = ['nastavenia.ts', 'pravidla.ts', 'cheaty.ts']
+export type NazovSuboru = 'settings.ts' | 'controls.ts' | 'rules.ts' | 'cheats.ts'
+export const PORADIE_SUBOROV: readonly NazovSuboru[] = ['settings.ts', 'controls.ts', 'rules.ts', 'cheats.ts']
+
+/** Ovládanie bez šípky doľava – tú si študent doprogramuje podľa šípky doprava. */
+const OVLADANIE_BEZ_VLAVO = `// Čo sa stane, keď stlačíš klávesu.
+
+whileKeyHeld("ArrowRight", () => {
+  player.walk(settings.speed)
+})
+
+onKeyPress("ArrowUp", () => {
+  player.jump()
+})
+
+onKeyPress("Space", () => {
+  player.jump()
+})
+`
 
 /**
  * Pôvodná pokazená verzia – s touto študenti začínajú.
- * Zámerne len 4 bugy (demo na 20–25 min): gravitácia, skok, mince, nepriatelia.
+ * Zámerne len 5 bugov (demo na 20–25 min): skok, slabá gravitácia, chýbajúca
+ * šípka doľava, mince, nepriatelia. Názvy v kóde sú anglicky (ako v reálnom
+ * programovaní), komentáre a chybové hlášky po slovensky.
  */
 export const BUGOVE_SUBORY: Record<NazovSuboru, string> = {
-  'nastavenia.ts': `nastavenia.skok = 120        // panáčik nevyskočí na prvú plošinu
-nastavenia.gravitacia = -800 // padá hore
-nastavenia.rychlost = 220
-nastavenia.velkost = 1
+  'settings.ts': `settings.jump = 120   // panáčik nevyskočí na prvú plošinu
+settings.gravity = 300
+settings.speed = 220
+settings.size = 1
 `,
-  'pravidla.ts': `priZbereMince(() => {
-  skore -= 1   // BUG: mince uberajú body
+  'controls.ts': OVLADANIE_BEZ_VLAVO,
+  'rules.ts': `onCoinCollect(() => {
+  score -= 1   // BUG: mince uberajú body
 })
 
-priDotykuNepriatela((zhora, nepriatel) => {
-  if (zhora) {
-    hrac.pridajZivot()   // BUG: má zničiť nepriateľa
+onEnemyTouch((fromAbove, enemy) => {
+  if (fromAbove) {
+    player.addLife()   // BUG: má zničiť nepriateľa
   } else {
-    nepriatel.znic()     // BUG: obrátene
+    enemy.destroy()    // BUG: obrátene
   }
 })
 `,
-  'cheaty.ts': `// Skús napísať vlastný cheat! Príklad:
-// cheat("baguvix", () => hrac.nesmrtelny = true)
+  'cheats.ts': `// Skús napísať vlastný cheat! Príklad:
+// cheat("baguvix", () => player.invincible = true)
 `,
 }
 
 /** Opravená verzia (učiteľský režim „Všetko opraviť"). */
 export const SPRAVNE_SUBORY: Record<NazovSuboru, string> = {
-  'nastavenia.ts': `nastavenia.skok = 560
-nastavenia.gravitacia = 1000
-nastavenia.rychlost = 220
-nastavenia.velkost = 1
+  'settings.ts': `settings.jump = 560
+settings.gravity = 1000
+settings.speed = 220
+settings.size = 1
 `,
-  'pravidla.ts': `priZbereMince(() => {
-  skore += 1
+  'controls.ts': OVLADANIE_BEZ_VLAVO.replace(
+    'onKeyPress("ArrowUp"',
+    `whileKeyHeld("ArrowLeft", () => {
+  player.walk(-settings.speed)
 })
 
-priDotykuNepriatela((zhora, nepriatel) => {
-  if (zhora) {
-    nepriatel.znic()
+onKeyPress("ArrowUp"`,
+  ),
+  'rules.ts': `onCoinCollect(() => {
+  score += 1
+})
+
+onEnemyTouch((fromAbove, enemy) => {
+  if (fromAbove) {
+    enemy.destroy()
   }
 })
 `,
-  'cheaty.ts': `cheat("baguvix", () => hrac.nesmrtelny = true)
-cheat("dazdnik", () => hrac.dajPredmet("dazdnik"))
+  'cheats.ts': `cheat("baguvix", () => player.invincible = true)
+cheat("umbrella", () => player.giveItem("umbrella"))
 `,
 }
 

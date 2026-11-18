@@ -1,5 +1,5 @@
 import Phaser from 'phaser'
-import { Hrac, type Ovladanie } from './Hrac'
+import { Hrac } from './Hrac'
 import { Nepriatel } from './Nepriatel'
 import { level, SIRKA, T, VYSKA, ZEM_Y } from './level'
 import { nastavSkore, nastavZivoty, resetujLevelovyStav, stavHry } from './stav'
@@ -8,23 +8,24 @@ import { napojHraca } from '../modapi/most'
 import { runtime } from '../runtime/runtime'
 import { udalosti } from './udalosti'
 
-type Klavesy = Record<'vlavo' | 'vpravo' | 'hore' | 'a' | 'd' | 'w' | 'medzera', Phaser.Input.Keyboard.Key>
-
 export const KLUC_SCENY = 'hra'
-const KLAVESY_SKOKU = new Set(['ArrowUp', 'KeyW', 'Space'])
-/** háčik priDotykuNepriatela sa pre jedného nepriateľa volá najviac raz za túto dobu */
+/** držanie týchto kláves otvára dáždnik (samotný skok je v študentskom controls.ts) */
+const KLAVESY_SKOKU = ['ArrowUp', 'KeyW', 'Space']
+/** háčik onEnemyTouch sa pre jedného nepriateľa volá najviac raz za túto dobu */
 const PAUZA_DOTYKU_MS = 400
 
 export class HraScena extends Phaser.Scene {
   private hrac!: Hrac
   private nepriatelia: Nepriatel[] = []
-  private klavesy!: Klavesy
+  /** KeyboardEvent.code práve držaných kláves */
+  private drzane = new Set<string>()
+  /** stlačenia od posledného snímku (aj rýchle ťuknutie stlač+pusť v jednom snímku) */
+  private stlacene: string[] = []
   private kopceDaleko!: Phaser.GameObjects.TileSprite
   private kopceBlizko!: Phaser.GameObjects.TileSprite
   private respawnBod = { x: 0, y: 0 }
   private koniecHry = false
   private dosiahnutyCiel = false
-  private cakajuciSkok = false
   private poslednyDotyk = new WeakMap<Nepriatel, number>()
   private bublina: Phaser.GameObjects.Text | null = null
 
@@ -58,7 +59,8 @@ export class HraScena extends Phaser.Scene {
       get y() {
         return hrac.y
       },
-      skoc: () => hrac.skoc(),
+      jump: () => hrac.poziadajOSkok(),
+      walk: (r) => hrac.chod(r),
     })
 
     // --- nepriatelia ---
@@ -82,21 +84,16 @@ export class HraScena extends Phaser.Scene {
     // --- klávesy (počúvajú len na elemente #hra, viď main.ts) ---
     const kb = this.input.keyboard
     if (!kb) throw new Error('Klávesnica nie je dostupná')
-    this.klavesy = kb.addKeys({
-      vlavo: 'LEFT',
-      vpravo: 'RIGHT',
-      hore: 'UP',
-      a: 'A',
-      d: 'D',
-      w: 'W',
-      medzera: 'SPACE',
-    }) as Klavesy
-    // Skok chytáme priamo z keydown: JustDown by stratil rýchle ťuknutie
-    // (stlačenie aj pustenie v jednom frame – časté na pomalších PC).
-    this.cakajuciSkok = false
+    // Čo klávesy robia, určuje študentský kód (controls.ts). Tu len zbierame,
+    // čo je stlačené; capture zabráni posúvaniu stránky šípkami a medzerníkom.
+    kb.addCapture(['UP', 'DOWN', 'LEFT', 'RIGHT', 'SPACE'])
+    this.drzane.clear()
+    this.stlacene = []
     kb.on('keydown', (e: KeyboardEvent) => {
-      if (!e.repeat && KLAVESY_SKOKU.has(e.code)) this.cakajuciSkok = true
+      if (!e.repeat) this.stlacene.push(e.code)
+      this.drzane.add(e.code)
     })
+    kb.on('keyup', (e: KeyboardEvent) => this.drzane.delete(e.code))
 
     nastavSkore(stavHry.skore)
     nastavZivoty(stavHry.zivoty)
@@ -114,19 +111,19 @@ export class HraScena extends Phaser.Scene {
   /** Volá sa pri strate fokusu – inak by klávesy „zamrzli" stlačené. */
   uvolniKlavesy(): void {
     this.input.keyboard?.resetKeys()
+    this.drzane.clear()
   }
 
   update(cas: number, delta: number): void {
     if (this.koniecHry) return
-    const k = this.klavesy
-    const ovl: Ovladanie = {
-      vlavo: k.vlavo.isDown || k.a.isDown,
-      vpravo: k.vpravo.isDown || k.d.isDown,
-      skokStlaceny: this.cakajuciSkok,
-      skokDrzany: k.hore.isDown || k.w.isDown || k.medzera.isDown,
-    }
-    this.cakajuciSkok = false
-    this.hrac.aktualizuj(ovl, cas)
+    const stlacene = this.stlacene
+    this.stlacene = []
+    for (const kod of stlacene) runtime.stlacenaKlavesa(kod)
+    runtime.drzaneKlavesy(this.drzane)
+    this.hrac.aktualizuj(
+      KLAVESY_SKOKU.some((k) => this.drzane.has(k)),
+      cas,
+    )
     for (const n of this.nepriatelia) if (n.active) n.aktualizuj(delta)
     this.bublina?.setPosition(this.hrac.x, this.hrac.y - this.hrac.displayHeight / 2 - 14)
 
@@ -247,7 +244,7 @@ export class HraScena extends Phaser.Scene {
     if (teraz - (this.poslednyDotyk.get(n) ?? -Infinity) > PAUZA_DOTYKU_MS) {
       this.poslednyDotyk.set(n, teraz)
       runtime.dotykNepriatela(zhora, {
-        znic: () => {
+        destroy: () => {
           if (n.zniceny) return
           n.znic()
           udalosti.emit('nepriatelZniceny', { zhora })

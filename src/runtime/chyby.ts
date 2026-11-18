@@ -16,7 +16,7 @@ export interface ChybaKodu {
 type Pravidlo = [RegExp, (...m: string[]) => string]
 
 const BEH: Pravidlo[] = [
-  [/^(\S+) is not defined/, (m) => `Neznáme slovo „${m}“. Skontroluj preklep (napr. hrac, nastavenia, skore).`],
+  [/^(\S+) is not defined/, (m) => `Neznáme slovo „${m}“. Skontroluj preklep (napr. player, settings, score).`],
   [/^(\S+) is not a function/, (m) => `„${m}“ nie je funkcia, nedá sa zavolať so zátvorkami ().`],
   [/^(?:\S+ )?is not a function/, () => 'Toto nie je funkcia, nedá sa zavolať so zátvorkami ().'],
   [/Cannot read propert(?:y|ies) of (undefined|null) \(reading '(.+)'\)/, (_n, p) => `Nedá sa čítať „${p}“, pretože vec pred bodkou neexistuje.`],

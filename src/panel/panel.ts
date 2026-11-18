@@ -34,7 +34,7 @@ export function vytvorPanel(koren: HTMLElement, moznosti: MoznostiPanela): Panel
         : ''
     }
     <div class="panel-tlacidla">
-      <button class="tlacidlo tlacidlo-hlavne" data-akcia="spustit" title="Ctrl+Enter">▶ Spustiť</button>
+      <button class="tlacidlo tlacidlo-hlavne" data-akcia="spustit" title="Ctrl+Enter">▶ Spustiť <kbd class="skratka">Ctrl+Enter</kbd></button>
       <button class="tlacidlo tlacidlo-druhe" data-akcia="reset" title="Vráti kód aj hru na pôvodnú pokazenú verziu">↺ Reset</button>
       <span class="potvrdenie" hidden>
         Vrátiť kód aj hru na začiatok?
@@ -68,7 +68,7 @@ export function vytvorPanel(koren: HTMLElement, moznosti: MoznostiPanela): Panel
     subory.nastavVsetky(BUGOVE_SUBORY)
     spustiTeraz()
     moznosti.resetujLevel()
-    kod.otvor('nastavenia.ts')
+    kod.otvor('settings.ts')
   })
 
   // --- učiteľský režim ---

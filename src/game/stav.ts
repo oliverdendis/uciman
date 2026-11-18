@@ -1,21 +1,22 @@
 import { udalosti } from './udalosti'
 
-export type Predmet = 'dazdnik'
+export type Predmet = 'umbrella'
 
 /** Hodnoty, ktoré hra číta KAŽDÝ frame. Študentský kód ich prepisuje. */
+/** Kľúče sú anglicky – študent ich píše v kóde ako `settings.jump` atď. */
 export interface Nastavenia {
-  skok: number
-  gravitacia: number
-  rychlost: number
-  velkost: number
+  jump: number
+  gravity: number
+  speed: number
+  size: number
 }
 
 /** Správne (funkčné) hodnoty – riešenie pre učiteľa. */
 export const SPRAVNE_NASTAVENIA: Readonly<Nastavenia> = {
-  skok: 560,
-  gravitacia: 1000,
-  rychlost: 220,
-  velkost: 1,
+  jump: 560,
+  gravity: 1000,
+  speed: 220,
+  size: 1,
 }
 
 /**
@@ -25,21 +26,21 @@ export const SPRAVNE_NASTAVENIA: Readonly<Nastavenia> = {
  * správne číslo.
  */
 export const ZAKLADNE_NASTAVENIA: Readonly<Nastavenia> = {
-  skok: 120,
-  gravitacia: -800,
-  rychlost: SPRAVNE_NASTAVENIA.rychlost,
-  velkost: SPRAVNE_NASTAVENIA.velkost,
+  jump: 120,
+  gravity: 300, // „mesačná“ – panáčik pláva, po oprave skoku narazí do stropu
+  speed: SPRAVNE_NASTAVENIA.speed,
+  size: SPRAVNE_NASTAVENIA.size,
 }
 
-/** seal: preklep `nastavenia.skook = 5` vyhodí chybu namiesto tichého ignorovania */
+/** seal: preklep `settings.jumpp = 5` vyhodí chybu namiesto tichého ignorovania */
 export const nastavenia: Nastavenia = Object.seal({ ...ZAKLADNE_NASTAVENIA })
 
 /** Bezpečné limity – nech študent zadá čokoľvek, fyzika sa nerozbije. */
 const LIMITY: Record<keyof Nastavenia, [number, number]> = {
-  skok: [0, 3000],
-  gravitacia: [-5000, 5000],
-  rychlost: [0, 2000],
-  velkost: [0.2, 4],
+  jump: [0, 3000],
+  gravity: [-5000, 5000],
+  speed: [0, 2000],
+  size: [0.2, 4],
 }
 
 const poslednePlatne: Nastavenia = { ...SPRAVNE_NASTAVENIA }

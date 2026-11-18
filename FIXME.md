@@ -14,10 +14,24 @@ Priebežný zoznam. Formát: `[ ]` otvorené, `[x]` vyriešené. Za pomlčkou je
   s vetou „Hra je pokazená – oprav ju v kóde“. Cieľ = „CIEĽ! Skóre: N“ a nové kolo od začiatku.
   Učiteľský „Ukáž riešenie“ pri misiách tým tiež odpadá. — M6
 
+- **Bugy prerobené** (dohoda 2026-11-18): gravitácia `-800` („padá hore“) bola príliš očividná
+  a čudná → nahradená nenápadnou slabou gravitáciou `300` (panáčik pláva; po oprave skoku
+  vyletí ku stropu a ~3 s padá). Nový bug: **ovládanie je v študentskom kóde**
+  (`controls.ts`, `whileKeyHeld` / `onKeyPress` / `player.walk`) a šípka doľava chýba – študent ju
+  doprogramuje podľa šípky doprava (`player.walk(-settings.speed)`). Spolu 5 bugov.
+  `player.jump()` už neskáče vo vzduchu (iba zo zeme). A/D/W ovládanie zrušené – sú len klávesy
+  v `controls.ts`. Kľúč úložiska → `uciman:kod:v2`.
+- **Študentské API a súbory sú anglicky** (dohoda 2026-11-18, slovenské názvy pôsobili „cringe“):
+  `settings.jump/gravity/speed/size`, `player.walk/jump/invincible/giveItem("umbrella")/addLife`,
+  `score`, `onCoinCollect`, `onEnemyTouch((fromAbove, enemy) => enemy.destroy())`, `onKeyPress`,
+  `whileKeyHeld`, `print`, `cheat`; súbory `settings.ts`, `controls.ts`, `rules.ts`, `cheats.ts`.
+  Komentáre, nápovedy (JSDoc) a chybové hlášky ostávajú po slovensky. Vnútorný kód hry ostáva
+  po slovensky (študent ho nevidí).
+
 ## Rozhodnutia
 - [x] **Nepriatelia:** náraz z boku uberá život v jadre hry, háčik rieši „navyše“; ak háčik
       nepriateľa zničí, hráč nestratí život. Riešenie = `if (zhora) nepriatel.znic()`. Potvrdené. — M2/M5
-- [x] **Zmazaný riadok v `nastavenia.ts`** vráti *bugovú* hodnotu (`ZAKLADNE_NASTAVENIA`) –
+- [x] **Zmazaný riadok v `settings.ts`** vráti *bugovú* hodnotu (`ZAKLADNE_NASTAVENIA`) –
       študent musí napísať správne číslo. Potvrdené. — M2/M5
 
 ## Obsah / assety
@@ -36,12 +50,17 @@ Priebežný zoznam. Formát: `[ ]` otvorené, `[x]` vyriešené. Za pomlčkou je
 - [x] Rýchle ťuknutie na skok sa strácalo (Phaser JustDown) → skok sa chytá z keydown. — M1
 - [x] Canvas vytláčal HUD a tlačidlá mimo obrazovky pri 1366×768. — M1
 
+- [ ] Ak študent priradí písmeno vo `whileKeyHeld("a", …)`, písanie cheatov v hre (napr. „baguvix“)
+      hýbe panáčikom. Asi v poriadku, len vedieť. — bugy v2
+- [ ] Oprava gravitácie nemá v kóde žiadnu nápovedu (zámerne nenápadná) – overiť na skupine,
+      či ju študenti nájdu; inak pridať komentár. — bugy v2
+
 ## Runtime
 - [ ] Syntaktická chyba, ktorú nájde až `new Function` (napr. dvakrát `let x` v rôznych
       súboroch), nemá číslo riadku. — M2
 - [ ] Ochrana cyklov počíta per-cyklus za celé volanie: vnorený cyklus 100×200 (= 20 000
       prechodov vnútorným) vyhodí „nikdy neskončí", hoci skončí. Pre študentov zriedkavé. — M2
-- [ ] `vypis()` bublina sleduje hráča; ak ich príde viac naraz, ukáže sa len posledná. — M2
+- [ ] `print()` bublina sleduje hráča; ak ich príde viac naraz, ukáže sa len posledná. — M2
 - [x] Nezatvorená zátvorka na konci súboru sa hlásila v nasledujúcom súbore. — M2
 - [x] Sucrase pri chýbajúcej „)" hlási „expected ,“ → preložené ako „Chýba zátvorka alebo čiarka". — M2
 

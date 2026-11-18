@@ -2,18 +2,10 @@ import Phaser from 'phaser'
 import { citaj, stavHry } from './stav'
 import { udalosti } from './udalosti'
 
-export interface Ovladanie {
-  vlavo: boolean
-  vpravo: boolean
-  /** skok práve stlačený v tomto frame */
-  skokStlaceny: boolean
-  /** skok držaný */
-  skokDrzany: boolean
-}
-
 const COYOTE_MS = 90
 const SKOK_BUFFER_MS = 120
 const MAX_RYCHLOST_PADU = 1400
+const MAX_RYCHLOST_CHODZE = 2000
 const DAZDNIK_GRAVITACIA = 0.15
 const DAZDNIK_MAX_PAD = 90
 
@@ -26,6 +18,8 @@ export class Hrac extends Phaser.Physics.Arcade.Sprite {
   private nesmrtelnyDo = 0
   private plachtil = false
   private animKrok = 0
+  /** nastaví `chod()` zo študentského ovládania; po každom snímku sa vynuluje */
+  private rychlostChodze = 0
   readonly dazdnik: Phaser.GameObjects.Image
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
@@ -41,7 +35,7 @@ export class Hrac extends Phaser.Physics.Arcade.Sprite {
 
   /** smer gravitácie: 1 = dole, -1 = hore */
   get smerGravitacie(): 1 | -1 {
-    return citaj('gravitacia') >= 0 ? 1 : -1
+    return citaj('gravity') >= 0 ? 1 : -1
   }
 
   get naZemi(): boolean {
@@ -57,15 +51,25 @@ export class Hrac extends Phaser.Physics.Arcade.Sprite {
     this.nesmrtelnyDo = this.scene.time.now + ms
   }
 
+  /** Študentský `player.jump()`: skočí, keď je na zemi (alebo na ňu o chvíľu dopadne). */
+  poziadajOSkok(): void {
+    this.poslednyPokusOSkok = this.scene.time.now
+  }
+
+  /** Študentský `player.walk(r)`: platí iba pre aktuálny snímok. */
+  chod(rychlost: number): void {
+    this.rychlostChodze = Math.max(-MAX_RYCHLOST_CHODZE, Math.min(MAX_RYCHLOST_CHODZE, rychlost))
+  }
+
   skoc(): void {
-    const sila = citaj('skok')
+    const sila = citaj('jump')
     this.body.setVelocityY(-this.smerGravitacie * sila)
     this.poslednaZem = -Infinity
     this.poslednyPokusOSkok = -Infinity
   }
 
   odrazOdNepriatela(): void {
-    this.body.setVelocityY(-this.smerGravitacie * Math.max(350, citaj('skok') * 0.6))
+    this.body.setVelocityY(-this.smerGravitacie * Math.max(350, citaj('jump') * 0.6))
   }
 
   respawn(x: number, y: number): void {
@@ -74,18 +78,20 @@ export class Hrac extends Phaser.Physics.Arcade.Sprite {
     this.docasneNesmrtelny(1200)
   }
 
-  aktualizuj(ovl: Ovladanie, cas: number): void {
-    const g = citaj('gravitacia')
+  /** @param skokDrzany drží sa kláves skoku (dáždnik) */
+  aktualizuj(skokDrzany: boolean, cas: number): void {
+    const g = citaj('gravity')
     const smerG = this.smerGravitacie
-    const rychlost = citaj('rychlost')
-    const velkost = citaj('velkost')
+    const rychlost = Math.abs(this.rychlostChodze)
+    const velkost = citaj('size')
 
     // --- veľkosť (Arcade body sa škáluje automaticky) ---
     if (this.scaleX !== velkost) this.setScale(velkost)
 
     // --- horizontálny pohyb ---
-    const smer = (ovl.vpravo ? 1 : 0) - (ovl.vlavo ? 1 : 0)
-    this.body.setVelocityX(smer * rychlost)
+    const smer = Math.sign(this.rychlostChodze)
+    this.body.setVelocityX(this.rychlostChodze)
+    this.rychlostChodze = 0
     if (smer !== 0) this.setFlipX(smer < 0)
 
     // --- zem, coyote time a buffer skoku ---
@@ -94,12 +100,11 @@ export class Hrac extends Phaser.Physics.Arcade.Sprite {
     if (naZemi && !this.bolNaZemi && smerG > 0) udalosti.emit('pristal', { gravitacia: g })
     this.bolNaZemi = naZemi
 
-    if (ovl.skokStlaceny) this.poslednyPokusOSkok = cas
     if (cas - this.poslednyPokusOSkok < SKOK_BUFFER_MS && cas - this.poslednaZem < COYOTE_MS) this.skoc()
 
     // --- gravitácia + dáždnik ---
     const padame = this.body.velocity.y * smerG > 0
-    const plachti = stavHry.predmety.has('dazdnik') && !naZemi && ovl.skokDrzany && padame
+    const plachti = stavHry.predmety.has('umbrella') && !naZemi && skokDrzany && padame
     if (plachti) {
       this.body.setGravityY(g * DAZDNIK_GRAVITACIA)
       if (Math.abs(this.body.velocity.y) > DAZDNIK_MAX_PAD) this.body.setVelocityY(smerG * DAZDNIK_MAX_PAD)

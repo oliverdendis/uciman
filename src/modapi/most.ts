@@ -5,7 +5,10 @@
 export interface MostHraca {
   readonly x: number
   readonly y: number
-  skoc(): void
+  /** skok zo zeme (s malou toleranciou, viď Hrac) */
+  jump(): void
+  /** vodorovná rýchlosť na tento snímok; kladná = doprava */
+  walk(rychlost: number): void
 }
 
 let aktualnyHrac: MostHraca | null = null

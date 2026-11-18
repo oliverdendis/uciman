@@ -10,7 +10,7 @@ afterEach(() => {
 
 describe('úložisko kódu', () => {
   it('uloží a načíta všetky tri súbory', () => {
-    const obsah = { ...BUGOVE_SUBORY, 'cheaty.ts': 'cheat("abc", () => {})' }
+    const obsah = { ...BUGOVE_SUBORY, 'cheats.ts': 'cheat("abc", () => {})' }
     ulozKod(obsah)
     expect(nacitajKod()).toEqual(obsah)
     zmazKod()
@@ -20,7 +20,7 @@ describe('úložisko kódu', () => {
   it('pokazené alebo neúplné dáta ignoruje', () => {
     localStorage.setItem(KLUC_ULOZISKA, '{nie je json')
     expect(nacitajKod()).toBeNull()
-    localStorage.setItem(KLUC_ULOZISKA, JSON.stringify({ 'nastavenia.ts': 'x' }))
+    localStorage.setItem(KLUC_ULOZISKA, JSON.stringify({ 'settings.ts': 'x' }))
     expect(nacitajKod()).toBeNull()
   })
 

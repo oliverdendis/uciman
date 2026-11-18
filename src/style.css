@@ -121,9 +121,9 @@ html, body {
 
 /* ---------- záložka Kód ---------- */
 .panel-kod { display: flex; flex-direction: column; gap: 8px; padding: 10px; }
-.subory { display: flex; gap: 4px; }
+.subory { display: flex; flex-wrap: wrap; gap: 4px; }
 .subor {
-  padding: 6px 12px;
+  padding: 6px 10px;
   border: 1px solid var(--border);
   border-radius: 6px;
   background: var(--bg);
@@ -152,7 +152,7 @@ html, body {
 
 /* ---------- Monaco ---------- */
 .subory { align-items: center; }
-.subory-napoveda { margin-left: auto; color: var(--text-dim); font-size: 12px; }
+.skratka { margin-left: 6px; font: 500 11px ui-monospace, Consolas, monospace; opacity: 0.7; }
 .subor.ma-chybu { border-color: var(--warn); color: #ffb39e; }
 .subor.ma-chybu::after { content: ' ●'; color: var(--warn); }
 .editor-hostitel {

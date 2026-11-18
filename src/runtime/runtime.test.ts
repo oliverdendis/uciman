@@ -7,9 +7,9 @@ import { transpiluj } from './transpiluj'
 
 function subory(nastaveniaTs = '', pravidlaTs = '', cheatyTs = '') {
   return [
-    { nazov: 'nastavenia.ts', kod: nastaveniaTs },
-    { nazov: 'pravidla.ts', kod: pravidlaTs },
-    { nazov: 'cheaty.ts', kod: cheatyTs },
+    { nazov: 'settings.ts', kod: nastaveniaTs },
+    { nazov: 'rules.ts', kod: pravidlaTs },
+    { nazov: 'cheats.ts', kod: cheatyTs },
   ]
 }
 
@@ -43,38 +43,38 @@ describe('transpilácia', () => {
 
   it('predvolené bugové aj správne súbory sa dajú spustiť', () => {
     expect(rt.spusti(akoSubory(BUGOVE_SUBORY)).ok).toBe(true)
-    expect(nastavenia.gravitacia).toBe(-800)
+    expect(nastavenia.gravity).toBe(300)
     expect(rt.spusti(akoSubory(SPRAVNE_SUBORY)).ok).toBe(true)
-    expect(nastavenia.gravitacia).toBe(1000)
+    expect(nastavenia.gravity).toBe(1000)
   })
 })
 
 describe('syntaktické chyby', () => {
   it('nahlási súbor a riadok a ponechá starú verziu', () => {
-    rt.spusti(subory('nastavenia.skok = 500', 'priZbereMince(() => { skore += 1 })'))
-    const r = rt.spusti(subory('nastavenia.skok = 50', '\n\npriZbereMince(() => {\n  skore += 1\n'))
+    rt.spusti(subory('settings.jump = 500', 'onCoinCollect(() => { score += 1 })'))
+    const r = rt.spusti(subory('settings.jump = 50', '\n\nonCoinCollect(() => {\n  score += 1\n'))
     expect(r.ok).toBe(false)
     if (!r.ok) {
       expect(r.chyba.druh).toBe('syntax')
-      expect(r.chyba.subor).toBe('pravidla.ts')
+      expect(r.chyba.subor).toBe('rules.ts')
       expect(r.chyba.sprava).toMatch(/zátvork|Kód náhle končí|Nečakaný/)
     }
     // stará verzia stále platí
-    expect(nastavenia.skok).toBe(500)
+    expect(nastavenia.jump).toBe(500)
     expect(rt.pocetHacikov).toBe(1)
   })
 
   it('nezatvorená zátvorka na konci súboru sa hlási v tom súbore, nie v ďalšom', () => {
-    const r = rt.spusti(subory('nastavenia.skok = 1\nnastavenia.velkost = (2\n', 'priZbereMince(() => {})'))
+    const r = rt.spusti(subory('settings.jump = 1\nsettings.size = (2\n', 'onCoinCollect(() => {})'))
     expect(r.ok).toBe(false)
-    if (!r.ok) expect(r.chyba).toMatchObject({ subor: 'nastavenia.ts', riadok: 2 })
+    if (!r.ok) expect(r.chyba).toMatchObject({ subor: 'settings.ts', riadok: 2 })
   })
 
   it('chýbajúca zátvorka na konkrétnom riadku', () => {
-    const r = rt.spusti(subory('nastavenia.skok = 1\nnastavenia.rychlost = (3 + 4\nnastavenia.velkost = 1'))
+    const r = rt.spusti(subory('settings.jump = 1\nsettings.speed = (3 + 4\nsettings.size = 1'))
     expect(r.ok).toBe(false)
     if (!r.ok) {
-      expect(r.chyba.subor).toBe('nastavenia.ts')
+      expect(r.chyba.subor).toBe('settings.ts')
       expect(r.chyba.riadok).toBe(3)
       expect(r.chyba.sprava).toContain('Chýba zátvorka „)“')
     }
@@ -83,7 +83,7 @@ describe('syntaktické chyby', () => {
 
 describe('háčiky', () => {
   it('nový beh odregistruje všetky háčiky z predošlého', () => {
-    rt.spusti(subory('', 'priZbereMince(() => {})\npriDotykuNepriatela(() => {})', 'cheat("aaa", () => {})\ncheat("bbb", () => {})'))
+    rt.spusti(subory('', 'onCoinCollect(() => {})\nonEnemyTouch(() => {})', 'cheat("aaa", () => {})\ncheat("bbb", () => {})'))
     expect(rt.pocetHacikov).toBe(4)
     rt.spusti(subory('', '', 'cheat("ccc", () => {})'))
     expect(rt.pocetHacikov).toBe(1)
@@ -91,8 +91,8 @@ describe('háčiky', () => {
     expect(napis(rt, 'ccc')).toEqual(['ccc'])
   })
 
-  it('skore sa dá meniť v háčiku aj na najvyššej úrovni', () => {
-    rt.spusti(subory('skore = 10', 'priZbereMince(() => { skore += 5 })'))
+  it('score sa dá meniť v háčiku aj na najvyššej úrovni', () => {
+    rt.spusti(subory('score = 10', 'onCoinCollect(() => { score += 5 })'))
     expect(stavHry.skore).toBe(10)
     rt.zberMince()
     rt.zberMince()
@@ -100,7 +100,7 @@ describe('háčiky', () => {
   })
 
   it('háčik vidí aktuálne skóre aj keď ho medzitým zmenila hra', () => {
-    rt.spusti(subory('', 'priZbereMince(() => { skore = skore * 2 })'))
+    rt.spusti(subory('', 'onCoinCollect(() => { score = score * 2 })'))
     stavHry.skore = 7
     rt.zberMince()
     expect(stavHry.skore).toBe(14)
@@ -112,51 +112,51 @@ describe('háčiky', () => {
     expect(stavHry.skore).toBe(-1)
   })
 
-  it('priDotykuNepriatela dostane smer a nepriateľa', () => {
-    rt.spusti(subory('', 'priDotykuNepriatela((zhora, n) => { if (zhora) n.znic() })'))
+  it('onEnemyTouch dostane smer a nepriateľa', () => {
+    rt.spusti(subory('', 'onEnemyTouch((fromAbove, n) => { if (fromAbove) n.destroy() })'))
     let zniceny = 0
-    rt.dotykNepriatela(false, { znic: () => zniceny++ })
-    rt.dotykNepriatela(true, { znic: () => zniceny++ })
+    rt.dotykNepriatela(false, { destroy: () => zniceny++ })
+    rt.dotykNepriatela(true, { destroy: () => zniceny++ })
     expect(zniceny).toBe(1)
   })
 })
 
 describe('chyby pri behu', () => {
   it('chyba na najvyššej úrovni: ľudská hláška, riadok a návrat k starej verzii', () => {
-    rt.spusti(subory('nastavenia.skok = 500'))
-    const r = rt.spusti(subory('nastavenia.skok = 999', '\nskocc()'))
+    rt.spusti(subory('settings.jump = 500'))
+    const r = rt.spusti(subory('settings.jump = 999', '\nskocc()'))
     expect(r.ok).toBe(false)
     if (!r.ok) {
-      expect(r.chyba).toMatchObject({ druh: 'beh', subor: 'pravidla.ts', riadok: 2 })
+      expect(r.chyba).toMatchObject({ druh: 'beh', subor: 'rules.ts', riadok: 2 })
       expect(r.chyba.sprava).toContain('Neznáme slovo „skocc“')
     }
-    expect(nastavenia.skok).toBe(500)
+    expect(nastavenia.jump).toBe(500)
   })
 
   it('chyba v háčiku sa zachytí, nahlási a háčik sa vypne', () => {
-    rt.spusti(subory('', 'priZbereMince(() => {\n  hrac.lietaj()\n})'))
+    rt.spusti(subory('', 'onCoinCollect(() => {\n  player.lietaj()\n})'))
     expect(() => rt.zberMince()).not.toThrow()
     expect(chyby).toHaveLength(1)
-    expect(chyby[0]).toMatchObject({ druh: 'hacik', hacik: 'priZbereMince', subor: 'pravidla.ts', riadok: 2 })
+    expect(chyby[0]).toMatchObject({ druh: 'hacik', hacik: 'onCoinCollect', subor: 'rules.ts', riadok: 2 })
     expect(chyby[0].sprava).toContain('nie je funkcia')
     rt.zberMince()
     expect(chyby).toHaveLength(1) // vypnutý háčik sa už nevolá
   })
 
   it('preklep vo vlastnosti nastavení je chyba (nie tiché ignorovanie)', () => {
-    const r = rt.spusti(subory('nastavenia.skook = 5'))
+    const r = rt.spusti(subory('settings.jumpp = 5'))
     expect(r.ok).toBe(false)
-    if (!r.ok) expect(r.chyba.sprava).toContain('Vlastnosť „skook“ neexistuje')
+    if (!r.ok) expect(r.chyba.sprava).toContain('Vlastnosť „jumpp“ neexistuje')
   })
 
-  it('hrac.x sa dá iba čítať', () => {
-    const r = rt.spusti(subory('hrac.x = 5'))
+  it('player.x sa dá iba čítať', () => {
+    const r = rt.spusti(subory('player.x = 5'))
     expect(r.ok).toBe(false)
     if (!r.ok) expect(r.chyba.sprava).toContain('„x“ sa dá iba čítať')
   })
 
   it('neznámy predmet', () => {
-    const r = rt.spusti(subory('hrac.dajPredmet("raketa")'))
+    const r = rt.spusti(subory('player.giveItem("raketa")'))
     expect(r.ok).toBe(false)
     if (!r.ok) expect(r.chyba.sprava).toContain('Neznámy predmet „raketa“')
   })
@@ -170,24 +170,24 @@ describe('chyby pri behu', () => {
 
 describe('kód je zdroj pravdy', () => {
   it('zmazaný riadok vráti hodnotu na základnú', () => {
-    rt.spusti(subory('nastavenia.skok = 120'))
-    expect(nastavenia.skok).toBe(120)
+    rt.spusti(subory('settings.jump = 120'))
+    expect(nastavenia.jump).toBe(120)
     rt.spusti(subory(''))
-    expect(nastavenia.skok).toBe(ZAKLADNE_NASTAVENIA.skok)
+    expect(nastavenia.jump).toBe(ZAKLADNE_NASTAVENIA.jump)
   })
 
   it('zmazanie bugového riadku bug neopraví – treba napísať správne číslo', () => {
-    rt.spusti(subory('nastavenia.rychlost = 220'))
-    expect(nastavenia.skok).toBe(120)
-    expect(nastavenia.gravitacia).toBe(-800)
-    rt.spusti(subory('nastavenia.skok = 560\nnastavenia.gravitacia = 1000'))
-    expect(nastavenia).toMatchObject({ skok: 560, gravitacia: 1000 })
+    rt.spusti(subory('settings.speed = 220'))
+    expect(nastavenia.jump).toBe(120)
+    expect(nastavenia.gravity).toBe(300)
+    rt.spusti(subory('settings.jump = 560\nsettings.gravity = 1000'))
+    expect(nastavenia).toMatchObject({ jump: 560, gravity: 1000 })
   })
 
   it('zmazaný cheat/predmet prestane platiť', () => {
-    rt.spusti(subory('hrac.nesmrtelny = true\nhrac.dajPredmet("dazdnik")'))
+    rt.spusti(subory('player.invincible = true\nplayer.giveItem("umbrella")'))
     expect(stavHry.nesmrtelny).toBe(true)
-    expect(stavHry.predmety.has('dazdnik')).toBe(true)
+    expect(stavHry.predmety.has('umbrella')).toBe(true)
     rt.spusti(subory(''))
     expect(stavHry.nesmrtelny).toBe(false)
     expect(stavHry.predmety.size).toBe(0)
@@ -200,7 +200,7 @@ describe('ochrana pred nekonečným cyklom', () => {
     expect(r.ok).toBe(false)
     if (!r.ok) {
       expect(r.chyba.sprava).toBe('Tvoj cyklus nikdy neskončí (viac ako 10 000 opakovaní).')
-      expect(r.chyba).toMatchObject({ subor: 'cheaty.ts', riadok: 2 })
+      expect(r.chyba).toMatchObject({ subor: 'cheats.ts', riadok: 2 })
     }
   })
 
@@ -217,7 +217,7 @@ describe('ochrana pred nekonečným cyklom', () => {
 
   it('konečné cykly fungujú, aj vnorené a opakované v háčiku', () => {
     const r = rt.spusti(
-      subory('', 'priZbereMince(() => {\n  for (let i = 0; i < 9000; i++) { skore += 0 }\n  skore += 1\n})', 'let s = 0\nfor (const x of [1, 2, 3]) { for (let j = 0; j < 100; j++) s++ }\nskore = s'),
+      subory('', 'onCoinCollect(() => {\n  for (let i = 0; i < 9000; i++) { score += 0 }\n  score += 1\n})', 'let s = 0\nfor (const x of [1, 2, 3]) { for (let j = 0; j < 100; j++) s++ }\nscore = s'),
     )
     expect(r.ok).toBe(true)
     expect(stavHry.skore).toBe(300)
@@ -230,7 +230,7 @@ describe('ochrana pred nekonečným cyklom', () => {
 
 describe('cheaty', () => {
   it('baguvix zapne nesmrteľnosť', () => {
-    rt.spusti(subory('', '', 'cheat("baguvix", () => hrac.nesmrtelny = true)'))
+    rt.spusti(subory('', '', 'cheat("baguvix", () => player.invincible = true)'))
     expect(napis(rt, 'xxbaguvi')).toEqual([])
     expect(stavHry.nesmrtelny).toBe(false)
     expect(napis(rt, 'x')).toEqual(['baguvix'])
@@ -240,5 +240,41 @@ describe('cheaty', () => {
   it('nepovolí príliš dlhý kód', () => {
     const r = rt.spusti(subory('', '', 'cheat("abcdefghijklmnopq", () => {})'))
     expect(r.ok).toBe(false)
+  })
+})
+
+describe('ovládanie (onKeyPress / whileKeyHeld)', () => {
+  it('whileKeyHeld sa volá iba pre držanú klávesu, onKeyPress pri stlačení', () => {
+    const r = rt.spusti(
+      subory('', 'whileKeyHeld("ArrowRight", () => { score += 1 })\nonKeyPress("a", () => { score += 10 })'),
+    )
+    expect(r.ok).toBe(true)
+    rt.drzaneKlavesy(new Set(['ArrowLeft']))
+    expect(stavHry.skore).toBe(0)
+    rt.drzaneKlavesy(new Set(['ArrowRight']))
+    rt.drzaneKlavesy(new Set(['ArrowRight']))
+    expect(stavHry.skore).toBe(2)
+    rt.stlacenaKlavesa('KeyA') // písmeno "a" = KeyboardEvent.code "KeyA"
+    expect(stavHry.skore).toBe(12)
+  })
+
+  it('bugová verzia nemá šípku doľava, opravená áno', () => {
+    expect(BUGOVE_SUBORY['controls.ts']).not.toContain('ArrowLeft')
+    expect(SPRAVNE_SUBORY['controls.ts']).toContain('player.walk(-settings.speed)')
+  })
+
+  it('neznáma kláves vyhodí zrozumiteľnú chybu', () => {
+    const r = rt.spusti(subory('', 'whileKeyHeld("SipkaVlavo", () => {})'))
+    expect(r.ok).toBe(false)
+    if (!r.ok) expect(r.chyba.sprava).toContain('Neznáma kláves „SipkaVlavo“')
+  })
+
+  it('chyba v whileKeyHeld sa nahlási raz a háčik sa vypne', () => {
+    rt.spusti(subory('', 'whileKeyHeld("ArrowLeft", () => { player.walk("vlavo") })'))
+    rt.drzaneKlavesy(new Set(['ArrowLeft']))
+    rt.drzaneKlavesy(new Set(['ArrowLeft']))
+    expect(chyby).toHaveLength(1)
+    expect(chyby[0]).toMatchObject({ druh: 'hacik', hacik: 'whileKeyHeld("ArrowLeft")' })
+    expect(chyby[0].sprava).toContain('player.walk potrebuje číslo')
   })
 })

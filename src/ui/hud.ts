@@ -1,7 +1,7 @@
 import { MAX_ZIVOTOV, stavHry } from '../game/stav'
 import { udalosti } from '../game/udalosti'
 
-const NAZVY_PREDMETOV: Record<string, string> = { dazdnik: '☂️ dáždnik' }
+const NAZVY_PREDMETOV: Record<string, string> = { umbrella: '☂️ dáždnik' }
 
 function el(id: string): HTMLElement {
   const e = document.getElementById(id)

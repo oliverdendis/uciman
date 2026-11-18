@@ -23,21 +23,21 @@ afterEach(() => vi.useRealTimers())
 
 describe('automatické spustenie', () => {
   it('zmena iba čísla sa spustí po ~250 ms', () => {
-    subory.nastav('nastavenia.ts', subory.citaj('nastavenia.ts').replace('= 120', '= 600'))
+    subory.nastav('settings.ts', subory.citaj('settings.ts').replace('= 120', '= 600'))
     o.naplanujSpustenie()
     vi.advanceTimersByTime(o.RYCHLE_ONESKORENIE_MS - 1)
-    expect(nastavenia.skok).toBe(120)
+    expect(nastavenia.jump).toBe(120)
     vi.advanceTimersByTime(1)
-    expect(nastavenia.skok).toBe(600)
+    expect(nastavenia.jump).toBe(600)
   })
 
   it('iná zmena (nový riadok) čaká 800 ms', () => {
-    subory.nastav('nastavenia.ts', subory.citaj('nastavenia.ts') + '\nnastavenia.skok = 700\n')
+    subory.nastav('settings.ts', subory.citaj('settings.ts') + '\nsettings.jump = 700\n')
     o.naplanujSpustenie()
     vi.advanceTimersByTime(o.RYCHLE_ONESKORENIE_MS)
-    expect(nastavenia.skok).toBe(120)
+    expect(nastavenia.jump).toBe(120)
     vi.advanceTimersByTime(o.ONESKORENIE_MS)
-    expect(nastavenia.skok).toBe(700)
+    expect(nastavenia.jump).toBe(700)
   })
 
   it('tvar kódu ignoruje čísla, ale nie ostatné zmeny', () => {
@@ -49,7 +49,7 @@ describe('automatické spustenie', () => {
 
 describe('chyby počas písania', () => {
   it('chyba z automatického spustenia je najprv jemná, potom červená', () => {
-    subory.nastav('nastavenia.ts', subory.citaj('nastavenia.ts') + '\nhrac.')
+    subory.nastav('settings.ts', subory.citaj('settings.ts') + '\nplayer.')
     o.naplanujSpustenie()
     vi.advanceTimersByTime(o.ONESKORENIE_MS)
     expect(posledny).toMatchObject({ ok: false, jemne: true })
@@ -58,17 +58,17 @@ describe('chyby počas písania', () => {
   })
 
   it('ďalšie písanie zruší zčervenanie', () => {
-    subory.nastav('nastavenia.ts', subory.citaj('nastavenia.ts') + '\nhrac.')
+    subory.nastav('settings.ts', subory.citaj('settings.ts') + '\nplayer.')
     o.naplanujSpustenie()
     vi.advanceTimersByTime(o.ONESKORENIE_MS + o.ESKALACIA_CHYBY_MS - 100)
-    subory.nastav('nastavenia.ts', subory.citaj('nastavenia.ts') + 'skoc')
+    subory.nastav('settings.ts', subory.citaj('settings.ts') + 'jump')
     o.naplanujSpustenie()
     vi.advanceTimersByTime(200)
     expect(posledny.caka).toBe(true)
   })
 
   it('Ctrl+Enter / Spustiť ukáže chybu hneď naplno', () => {
-    subory.nastav('nastavenia.ts', subory.citaj('nastavenia.ts') + '\nhrac.')
+    subory.nastav('settings.ts', subory.citaj('settings.ts') + '\nplayer.')
     expect(o.spustiTeraz()).toBe(false)
     expect(posledny).toMatchObject({ ok: false, jemne: false })
   })

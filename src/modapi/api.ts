@@ -14,16 +14,37 @@ export class ChybaApi extends Error {
 
 /** Mená, ktoré študentský kód vidí. Poradie = poradie parametrov funkcie. */
 export const MENA_API = [
-  'nastavenia',
-  'hrac',
-  'skore',
+  'settings',
+  'player',
+  'score',
   'cheat',
-  'priZbereMince',
-  'priDotykuNepriatela',
-  'vypis',
+  'onCoinCollect',
+  'onEnemyTouch',
+  'onKeyPress',
+  'whileKeyHeld',
+  'print',
 ] as const
 
-const PREDMETY: readonly Predmet[] = ['dazdnik']
+const PREDMETY: readonly Predmet[] = ['umbrella']
+
+const POMENOVANE_KLAVESY = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Space', 'Enter'])
+
+/** "ArrowLeft" → "ArrowLeft", "a" → "KeyA", "7" → "Digit7"; neznáma kláves → null */
+export function kodKlavesy(nazov: unknown): string | null {
+  if (typeof nazov !== 'string') return null
+  if (POMENOVANE_KLAVESY.has(nazov)) return nazov
+  if (/^[a-zA-Z]$/.test(nazov)) return `Key${nazov.toUpperCase()}`
+  if (/^[0-9]$/.test(nazov)) return `Digit${nazov}`
+  return null
+}
+
+function overKlavesu(funkcia: string, nazov: unknown): string {
+  const kod = kodKlavesy(nazov)
+  if (kod) return kod
+  throw new ChybaApi(
+    `Neznáma kláves „${String(nazov)}“. Skús napríklad ${funkcia}("ArrowLeft", …), "ArrowUp", "Space" alebo písmeno "a".`,
+  )
+}
 
 function overFunkciu(nazov: string, akcia: unknown): void {
   if (typeof akcia !== 'function') {
@@ -36,34 +57,42 @@ function vytvorHraca(): object {
   Object.defineProperties(hrac, {
     x: { get: () => Math.round(hracVHre()?.x ?? 0), enumerable: true },
     y: { get: () => Math.round(hracVHre()?.y ?? 0), enumerable: true },
-    nesmrtelny: {
+    invincible: {
       get: () => stavHry.nesmrtelny,
       set: (v: unknown) => {
         stavHry.nesmrtelny = Boolean(v)
       },
       enumerable: true,
     },
-    dajPredmet: {
+    giveItem: {
       value: (nazov: unknown) => {
         if (!PREDMETY.includes(nazov as Predmet)) {
-          throw new ChybaApi(`Neznámy predmet „${String(nazov)}“. Skús: hrac.dajPredmet("dazdnik")`)
+          throw new ChybaApi(`Neznámy predmet „${String(nazov)}“. Skús: player.giveItem("umbrella")`)
         }
         pridajPredmet(nazov as Predmet)
       },
     },
-    skoc: { value: () => hracVHre()?.skoc() },
-    pridajZivot: { value: () => nastavZivoty(stavHry.zivoty + 1) },
+    jump: { value: () => hracVHre()?.jump() },
+    walk: {
+      value: (rychlost: unknown) => {
+        if (typeof rychlost !== 'number' || !Number.isFinite(rychlost)) {
+          throw new ChybaApi('player.walk potrebuje číslo, napríklad: player.walk(200)')
+        }
+        hracVHre()?.walk(rychlost)
+      },
+    },
+    addLife: { value: () => nastavZivoty(stavHry.zivoty + 1) },
   })
-  // seal: preklep typu `hrac.nesmrtelni = true` vyhodí zrozumiteľnú chybu
+  // seal: preklep typu `player.invincibel = true` vyhodí zrozumiteľnú chybu
   return Object.seal(hrac)
 }
 
 /** Hodnoty API pre jeden beh kódu; háčiky sa registrujú do `register`. */
 export function vytvorApi(register: Register): Record<(typeof MENA_API)[number], unknown> {
   return {
-    nastavenia,
-    hrac: vytvorHraca(),
-    skore: stavHry.skore,
+    settings: nastavenia,
+    player: vytvorHraca(),
+    score: stavHry.skore,
     cheat: (kod: unknown, akcia: unknown) => {
       if (typeof kod !== 'string' || kod.trim() === '') {
         throw new ChybaApi('cheat potrebuje text, napríklad: cheat("baguvix", () => { … })')
@@ -75,15 +104,25 @@ export function vytvorApi(register: Register): Record<(typeof MENA_API)[number],
       overFunkciu('cheat', akcia)
       register.cheaty.push({ nazov: `cheat("${kod}")`, kod: kod.toLowerCase(), akcia: akcia as AkciaCheatu, vypnuty: false })
     },
-    priZbereMince: (akcia: unknown) => {
-      overFunkciu('priZbereMince', akcia)
-      register.mince.push({ nazov: 'priZbereMince', akcia: akcia as AkciaMince, vypnuty: false })
+    onCoinCollect: (akcia: unknown) => {
+      overFunkciu('onCoinCollect', akcia)
+      register.mince.push({ nazov: 'onCoinCollect', akcia: akcia as AkciaMince, vypnuty: false })
     },
-    priDotykuNepriatela: (akcia: unknown) => {
-      overFunkciu('priDotykuNepriatela', akcia)
-      register.nepriatelia.push({ nazov: 'priDotykuNepriatela', akcia: akcia as AkciaNepriatela, vypnuty: false })
+    onEnemyTouch: (akcia: unknown) => {
+      overFunkciu('onEnemyTouch', akcia)
+      register.nepriatelia.push({ nazov: 'onEnemyTouch', akcia: akcia as AkciaNepriatela, vypnuty: false })
     },
-    vypis: (text: unknown) => {
+    onKeyPress: (klavesa: unknown, akcia: unknown) => {
+      const kod = overKlavesu('onKeyPress', klavesa)
+      overFunkciu('onKeyPress', akcia)
+      register.klavesy.push({ nazov: `onKeyPress("${String(klavesa)}")`, klavesa: kod, drzat: false, akcia: akcia as () => void, vypnuty: false })
+    },
+    whileKeyHeld: (klavesa: unknown, akcia: unknown) => {
+      const kod = overKlavesu('whileKeyHeld', klavesa)
+      overFunkciu('whileKeyHeld', akcia)
+      register.klavesy.push({ nazov: `whileKeyHeld("${String(klavesa)}")`, klavesa: kod, drzat: true, akcia: akcia as () => void, vypnuty: false })
+    },
+    print: (text: unknown) => {
       udalosti.emit('vypis', String(text).slice(0, 140))
     },
   }

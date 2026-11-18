@@ -21,10 +21,10 @@ const ZDROJ = 'uciman-kod.js'
 const VZOR_RIADKU = /(?:uciman-kod\.js|> Function|<anonymous>):(\d+):(\d+)/
 const MENO_SKORE_MOSTA = '__napojSkore'
 /**
- * Prvý riadok tela funkcie. `skore` je parameter funkcie (študent doň môže
+ * Prvý riadok tela funkcie. `score` je parameter funkcie (študent doň môže
  * priraďovať), a cez tieto dve funkcie ho synchronizujeme so stavom hry.
  */
-const UVOD = `"use strict"; ${MENO_SKORE_MOSTA}(() => skore, (v) => { skore = v });`
+const UVOD = `"use strict"; ${MENO_SKORE_MOSTA}(() => score, (v) => { score = v });`
 const PARAMETRE = [...MENA_API, MENO_STRAZE, MENO_SKORE_MOSTA]
 
 let posunRiadkov: number | null = null
@@ -81,7 +81,7 @@ export class Runtime {
     const spojeny = spojSubory(subory)
 
     // Každý súbor zvlášť: syntaktická chyba (napr. nezatvorená zátvorka na konci
-    // nastavenia.ts) sa tak nahlási v správnom súbore, nie na začiatku ďalšieho.
+    // settings.ts) sa tak nahlási v správnom súbore, nie na začiatku ďalšieho.
     // Sucrase ani stráž nepridávajú riadky, takže spojený JS sedí s `spojeny`.
     const casti: string[] = []
     let pocetCyklov = 0
@@ -144,6 +144,17 @@ export class Runtime {
 
   dotykNepriatela(zhora: boolean, nepriatel: NepriatelApi): void {
     for (const h of this.register.nepriatelia) this.volajHacik(h, [zhora, nepriatel])
+  }
+
+  /** Kláves práve stlačená (KeyboardEvent.code) – háčiky `onKeyPress`. */
+  stlacenaKlavesa(kod: string): void {
+    for (const h of this.register.klavesy) if (!h.drzat && h.klavesa === kod) this.volajHacik(h, [])
+  }
+
+  /** Volá sa každý snímok s držanými klávesmi – háčiky `whileKeyHeld`. */
+  drzaneKlavesy(drzane: ReadonlySet<string>): void {
+    if (drzane.size === 0) return
+    for (const h of this.register.klavesy) if (h.drzat && drzane.has(h.klavesa)) this.volajHacik(h, [])
   }
 
   get maHacikNepriatela(): boolean {

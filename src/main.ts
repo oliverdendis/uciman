@@ -40,7 +40,7 @@ pripojCheatVstup(kontajner, (znak) => runtime.zadajZnak(znak))
 // študentský kód (uložený alebo pôvodný pokazený) beží hneď od štartu
 spustiTeraz()
 
-// Pomôcka pre vývoj, Playwright testy a zvedavcov v konzole: `uciman.nastavenia.skok = 600`
+// Pomôcka pre vývoj, Playwright testy a zvedavcov v konzole: `uciman.nastavenia.jump = 600`
 Object.assign(window, {
-  uciman: { hra, nastavenia, stavHry, udalosti, runtime, subory, dajDazdnik: () => pridajPredmet('dazdnik') },
+  uciman: { hra, nastavenia, stavHry, udalosti, runtime, subory, dajDazdnik: () => pridajPredmet('umbrella') },
 })
