@@ -52,8 +52,9 @@ Priebežný zoznam. Formát: `[ ]` otvorené, `[x]` vyriešené. Za pomlčkou je
 
 - [ ] Ak študent priradí písmeno vo `whileKeyHeld("a", …)`, písanie cheatov v hre (napr. „baguvix“)
       hýbe panáčikom. Asi v poriadku, len vedieť. — bugy v2
-- [ ] Oprava gravitácie nemá v kóde žiadnu nápovedu (zámerne nenápadná) – overiť na skupine,
-      či ju študenti nájdu; inak pridať komentár. — bugy v2
+- [ ] Komentáre v študentskom kóde len popisujú, čo kód robí (po slovensky) – žiadne
+      „// BUG:“ ani popisy chýb (dohoda 2026-11-19). Overiť na prvej skupine, či bugy nájdu
+      len z hrania; ak nie, lektor ukáže slajd „Čo treba opraviť“. — bugy v2
 
 ## Runtime
 - [ ] Syntaktická chyba, ktorú nájde až `new Function` (napr. dvakrát `let x` v rôznych

@@ -3,20 +3,39 @@ import type { VirtualnySubor } from '../runtime/subory'
 export type NazovSuboru = 'settings.ts' | 'controls.ts' | 'rules.ts' | 'cheats.ts'
 export const PORADIE_SUBOROV: readonly NazovSuboru[] = ['settings.ts', 'controls.ts', 'rules.ts', 'cheats.ts']
 
-/** Ovládanie bez šípky doľava – tú si študent doprogramuje podľa šípky doprava. */
-const OVLADANIE_BEZ_VLAVO = `// Čo sa stane, keď stlačíš klávesu.
+const HLAVICKA_NASTAVENI = `// Nastavenia hry – dôležité čísla na jednom mieste.
+// Hra ich číta 60× za sekundu, takže zmena sa prejaví hneď.
+`
 
+/** Ovládanie bez šípky doľava – tú si študent doprogramuje podľa šípky doprava. */
+const OVLADANIE_BEZ_VLAVO = `// Ovládanie: čo sa stane, keď stlačíš klávesu.
+//   whileKeyHeld – spúšťa sa stále dokola, kým klávesu držíš
+//   onKeyPress   – spustí sa raz, keď klávesu stlačíš
+
+// šípka doprava: panáčik ide doprava
 whileKeyHeld("ArrowRight", () => {
   player.walk(settings.speed)
 })
 
+// šípka hore: skok
 onKeyPress("ArrowUp", () => {
   player.jump()
 })
 
+// medzerník: tiež skok
 onKeyPress("Space", () => {
   player.jump()
 })
+`
+
+const HLAVICKA_PRAVIDIEL = `// Pravidlá hry: čo sa stane, keď sa v hre niečo udeje.
+`
+
+const KOMENTAR_NEPRIATELA = `// panáčik sa dotkol nepriateľa
+// fromAbove = true, keď naňho skočil zhora
+// (náraz z boku uberie život – o to sa stará hra sama)`
+
+const HLAVICKA_CHEATOV = `// Cheaty: keď v hre napíšeš kód, spustí sa akcia.
 `
 
 /**
@@ -26,55 +45,79 @@ onKeyPress("Space", () => {
  * programovaní), komentáre a chybové hlášky po slovensky.
  */
 export const BUGOVE_SUBORY: Record<NazovSuboru, string> = {
-  'settings.ts': `settings.jump = 120   // panáčik nevyskočí na prvú plošinu
+  'settings.ts': `${HLAVICKA_NASTAVENI}
+// výška skoku: čím väčšie číslo, tým vyššie panáčik vyskočí
+settings.jump = 120
+
+// gravitácia: ako silno ťahá panáčika dole (px/s²)
 settings.gravity = 300
+
+// rýchlosť chôdze (px/s)
 settings.speed = 220
+
+// veľkosť panáčika: 1 = normálny, 2 = dvakrát väčší
 settings.size = 1
 `,
   'controls.ts': OVLADANIE_BEZ_VLAVO,
-  'rules.ts': `onCoinCollect(() => {
-  score -= 1   // BUG: mince uberajú body
+  'rules.ts': `${HLAVICKA_PRAVIDIEL}
+// panáčik zobral mincu
+onCoinCollect(() => {
+  score -= 1
 })
 
+${KOMENTAR_NEPRIATELA}
 onEnemyTouch((fromAbove, enemy) => {
   if (fromAbove) {
-    player.addLife()   // BUG: má zničiť nepriateľa
+    player.addLife()
   } else {
-    enemy.destroy()    // BUG: obrátene
+    enemy.destroy()
   }
 })
 `,
-  'cheats.ts': `// Skús napísať vlastný cheat! Príklad:
+  'cheats.ts': `${HLAVICKA_CHEATOV}// Skús napísať vlastný! Príklad:
 // cheat("baguvix", () => player.invincible = true)
 `,
 }
 
 /** Opravená verzia (učiteľský režim „Všetko opraviť"). */
 export const SPRAVNE_SUBORY: Record<NazovSuboru, string> = {
-  'settings.ts': `settings.jump = 560
+  'settings.ts': `${HLAVICKA_NASTAVENI}
+// výška skoku: čím väčšie číslo, tým vyššie panáčik vyskočí
+settings.jump = 560
+
+// gravitácia: ako silno ťahá panáčika dole (px/s²)
 settings.gravity = 1000
+
+// rýchlosť chôdze (px/s)
 settings.speed = 220
+
+// veľkosť panáčika: 1 = normálny, 2 = dvakrát väčší
 settings.size = 1
 `,
   'controls.ts': OVLADANIE_BEZ_VLAVO.replace(
-    'onKeyPress("ArrowUp"',
-    `whileKeyHeld("ArrowLeft", () => {
+    '// šípka hore: skok',
+    `// šípka doľava: panáčik ide doľava
+whileKeyHeld("ArrowLeft", () => {
   player.walk(-settings.speed)
 })
 
-onKeyPress("ArrowUp"`,
+// šípka hore: skok`,
   ),
-  'rules.ts': `onCoinCollect(() => {
+  'rules.ts': `${HLAVICKA_PRAVIDIEL}
+// panáčik zobral mincu
+onCoinCollect(() => {
   score += 1
 })
 
+${KOMENTAR_NEPRIATELA}
 onEnemyTouch((fromAbove, enemy) => {
   if (fromAbove) {
     enemy.destroy()
   }
 })
 `,
-  'cheats.ts': `cheat("baguvix", () => player.invincible = true)
+  'cheats.ts': `${HLAVICKA_CHEATOV}
+cheat("baguvix", () => player.invincible = true)
 cheat("umbrella", () => player.giveItem("umbrella"))
 `,
 }

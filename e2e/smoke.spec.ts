@@ -43,12 +43,14 @@ test('písanie v editore nehýbe panáčikom', async ({ page }) => {
 test('Ctrl+Enter spustí kód aj s chybou hneď naplno (nevloží nový riadok)', async ({ page }) => {
   await page.goto('/?reset')
   const riadky = page.locator('.monaco-editor .view-lines')
+  const pocetRiadkov = () =>
+    page.evaluate(() => ((window as any).uciman.subory.citaj('settings.ts') as string).split('\n').length)
+  const povodne = await pocetRiadkov()
   await riadky.getByText('120', { exact: true }).dblclick()
   await page.keyboard.type('12x')
   await page.keyboard.press('Control+Enter')
   await expect(page.locator('.stav-behu')).toContainText('Chyba')
-  const kod = await page.evaluate(() => (window as any).uciman.subory.citaj('settings.ts') as string)
-  expect(kod.split('\n')).toHaveLength(5) // 4 riadky + koncový – Ctrl+Enter nepridal nový riadok
+  expect(await pocetRiadkov()).toBe(povodne) // Ctrl+Enter nepridal nový riadok
 })
 
 test('šípka doľava v pokazenej verzii nefunguje, po oprave áno; doprava ide vždy', async ({ page }) => {
