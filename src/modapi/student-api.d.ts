@@ -37,6 +37,11 @@ declare const player: {
   /** Zvislá pozícia v pixeloch, 0 = hore (dá sa iba čítať). */
   readonly y: number
   /**
+   * Počet životov (0 – 5). Môžeš ho čítať aj meniť. Keď klesne na 0, hra skončí.
+   * @example if (player.lives === 1) print("Pozor!")
+   */
+  lives: number
+  /**
    * Nesmrteľnosť: keď je `true`, nepriatelia ani pády neuberajú životy.
    * @example player.invincible = true
    */

@@ -58,6 +58,16 @@ function vytvorHraca(): object {
   Object.defineProperties(hrac, {
     x: { get: () => Math.round(hracVHre()?.x ?? 0), enumerable: true },
     y: { get: () => Math.round(hracVHre()?.y ?? 0), enumerable: true },
+    lives: {
+      get: () => stavHry.zivoty,
+      set: (v: unknown) => {
+        if (typeof v !== 'number' || !Number.isFinite(v)) {
+          throw new ChybaApi('player.lives potrebuje číslo, napríklad: player.lives = 5')
+        }
+        nastavZivoty(Math.round(v)) // orežie na 0 – 5; pri 0 hra skončí (HraScena)
+      },
+      enumerable: true,
+    },
     invincible: {
       get: () => stavHry.nesmrtelny,
       set: (v: unknown) => {

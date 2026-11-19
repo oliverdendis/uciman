@@ -309,3 +309,21 @@ describe('onJump (skrytý listener)', () => {
     expect(stavHry.skore).toBe(2)
   })
 })
+
+describe('player.lives (skryté)', () => {
+  it('dá sa čítať aj meniť, orezáva sa na 0 – 5', () => {
+    expect(rt.spusti(subory('', 'onCoinCollect(() => { score = player.lives; player.lives = player.lives - 1 })')).ok).toBe(true)
+    rt.zberMince()
+    expect(stavHry.skore).toBe(3)
+    expect(stavHry.zivoty).toBe(2)
+    rt.spusti(subory('player.lives = 99'))
+    expect(stavHry.zivoty).toBe(5)
+  })
+
+  it('nečíslo je zrozumiteľná chyba a životy sa vrátia', () => {
+    const r = rt.spusti(subory('player.lives = 1\nplayer.lives = "veľa"'))
+    expect(r.ok).toBe(false)
+    if (!r.ok) expect(r.chyba.sprava).toContain('player.lives potrebuje číslo')
+    expect(stavHry.zivoty).toBe(3)
+  })
+})

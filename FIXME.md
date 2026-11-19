@@ -36,6 +36,7 @@ Priebežný zoznam. Formát: `[ ]` otvorené, `[x]` vyriešené. Za pomlčkou je
 - **Stručné komentáre a `score = score - 1`** (dohoda 2026-11-19): komentáre bez jednotiek a
   nápovedí („// výška skoku“, „// Nastavenia hry“); skóre zapisujeme celé, `+=` nemusia poznať.
   Skrytý listener `onJump` (nie je v súboroch, nájdu ho v napovedaní). Kľúč úložiska v4.
+  Skryté `player.lives` (čítanie aj zápis, 0 – 5; pri 0 koniec hry – rieši udalosť `zivoty`).
 - **Logo UCM** v paneli a ako ikona karty (`public/logo-ucm.svg`). Je **prekreslené podľa
   obrázka** – [ ] nahradiť oficiálnym SVG z UCM, ak ho máme.
 

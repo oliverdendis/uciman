@@ -102,6 +102,10 @@ export class HraScena extends Phaser.Scene {
     const odhlasenia = [
       udalosti.on('cheat', () => this.efektCheatu()),
       udalosti.on('vypis', (text) => this.ukazBublinu(text)),
+      // životy môže znížiť hra (stratZivot) aj študentský kód (player.lives)
+      udalosti.on('zivoty', (z) => {
+        if (z <= 0) this.koniecHry_()
+      }),
     ]
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       odhlasenia.forEach((f) => f())
@@ -277,10 +281,12 @@ export class HraScena extends Phaser.Scene {
   private stratZivot(dovod: 'nepriatel' | 'priepast'): void {
     udalosti.emit('smrt', { dovod })
     if (stavHry.nesmrtelny) return
-    nastavZivoty(stavHry.zivoty - 1)
     this.cameras.main.shake(180, 0.006)
-    if (stavHry.zivoty > 0) return
+    nastavZivoty(stavHry.zivoty - 1) // pri 0 zavolá koniecHry_ cez udalosť 'zivoty'
+  }
 
+  private koniecHry_(): void {
+    if (this.koniecHry || this.dosiahnutyCiel) return
     this.koniecHry = true
     this.physics.pause()
     this.hlaska('KONIEC HRY – skúšame znova…', '#ff7a59', 1800)

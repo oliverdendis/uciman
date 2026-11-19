@@ -2,6 +2,7 @@ import {
   nastavenia,
   nastavPredmety,
   nastavSkore,
+  nastavZivoty,
   stavHry,
   ZAKLADNE_NASTAVENIA,
   type FarebneNastavenie,
@@ -63,6 +64,7 @@ interface Zaloha {
   nesmrtelny: boolean
   predmety: Set<Predmet>
   skore: number
+  zivoty: number
 }
 
 export class Runtime {
@@ -241,6 +243,7 @@ export class Runtime {
       nesmrtelny: stavHry.nesmrtelny,
       predmety: new Set(stavHry.predmety),
       skore: stavHry.skore,
+      zivoty: stavHry.zivoty,
     }
   }
 
@@ -249,6 +252,7 @@ export class Runtime {
     stavHry.nesmrtelny = z.nesmrtelny
     nastavPredmety(z.predmety)
     if (stavHry.skore !== z.skore) nastavSkore(z.skore)
+    if (stavHry.zivoty !== z.zivoty) nastavZivoty(z.zivoty)
   }
 
   private miesto(e: unknown, mapa: SpojenyKod | null): Partial<ChybaKodu> {

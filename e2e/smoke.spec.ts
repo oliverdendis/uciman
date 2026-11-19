@@ -120,3 +120,18 @@ test('onJump sa zavolá pri skutočnom skoku v hre', async ({ page }) => {
   await page.keyboard.press('Space')
   await expect(page.locator('#hud-skore')).toHaveText('100')
 })
+
+test('player.lives = 0 ukončí hru a level začne odznova s 3 životmi', async ({ page }) => {
+  await page.goto('/?reset')
+  await expect(page.locator('.stav-behu')).toContainText('Kód beží')
+  const zivoty = () => page.evaluate(() => (window as any).uciman.stavHry.zivoty as number)
+  await page.evaluate(() => {
+    const u = (window as any).uciman
+    u.subory.nastav('cheats.ts', 'cheat("smrt", () => player.lives = 0)\n')
+  })
+  await page.getByRole('button', { name: /Spustiť/ }).click()
+  await page.locator('#hra').focus()
+  await page.keyboard.type('smrt')
+  await expect.poll(zivoty).toBe(0)
+  await expect.poll(zivoty, { timeout: 5000 }).toBe(3) // reštart levelu
+})

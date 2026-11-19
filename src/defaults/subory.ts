@@ -27,7 +27,7 @@ onKeyPress("Space", () => {
  * Zámerne len 5 bugov (demo na 20–25 min): skok, slabá gravitácia, chýbajúca
  * šípka doľava, mince, nepriatelia. Názvy v kóde sú anglicky, komentáre
  * stručne po slovensky a bez nápovedí k bugom.
- * Skryté (nie sú v súboroch, objavia sa v napovedaní): settings.size,
+ * Skryté (nie sú v súboroch, objavia sa v napovedaní): settings.size, player.lives,
  * settings.coinColor, settings.playerColor, onJump.
  */
 export const BUGOVE_SUBORY: Record<NazovSuboru, string> = {
