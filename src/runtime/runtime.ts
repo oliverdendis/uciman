@@ -4,10 +4,12 @@ import {
   nastavSkore,
   stavHry,
   ZAKLADNE_NASTAVENIA,
+  type FarebneNastavenie,
   type Nastavenia,
   type Predmet,
 } from '../game/stav'
 import { udalosti } from '../game/udalosti'
+import { jePlatnaFarba } from '../game/farby'
 import { MENA_API, vytvorApi } from '../modapi/api'
 import { CheatBuffer } from '../modapi/cheatBuffer'
 import { Register, type Hacik, type NepriatelApi } from '../modapi/register'
@@ -39,6 +41,19 @@ function posun(): number {
     if (m) posunRiadkov = Number(m[1]) - 2
   }
   return posunRiadkov
+}
+
+const FAREBNE: readonly FarebneNastavenie[] = ['coinColor', 'playerColor']
+
+/** Posledný riadok, ktorý zodpovedá vzoru – na ukázanie chyby pri farbe. */
+function najdiRiadok(subory: readonly VirtualnySubor[], vzor: RegExp): Partial<ChybaKodu> {
+  let najdene: Partial<ChybaKodu> = {}
+  for (const s of subory) {
+    s.kod.split('\n').forEach((r, i) => {
+      if (vzor.test(r)) najdene = { subor: s.nazov, riadok: i + 1 }
+    })
+  }
+  return najdene
 }
 
 export type VysledokBehu = { ok: true; pocetHacikov: number } | { ok: false; chyba: ChybaKodu }
@@ -125,6 +140,18 @@ export class Runtime {
       return this.zlyhanie({ druh: 'beh', sprava: prelozBeh(e), ...this.miesto(e, spojeny) })
     }
 
+    // farby overíme hneď – inak by sa preklep („cervena“) ticho ignoroval
+    const zlaFarba = FAREBNE.find((k) => !jePlatnaFarba(nastavenia[k]))
+    if (zlaFarba) {
+      const hodnota = String(nastavenia[zlaFarba])
+      this.obnov(zaloha)
+      return this.zlyhanie({
+        druh: 'beh',
+        sprava: `Neznáma farba „${hodnota}“. Skús napríklad "red", "blue", "orange" alebo "#ff00ff".`,
+        ...najdiRiadok(subory, new RegExp(`settings\\.${zlaFarba}\\b`)),
+      })
+    }
+
     // úspech: staré háčiky zahodíme naraz (odregistrovanie)
     this.register = novyRegister
     this.mapa = spojeny
@@ -144,6 +171,11 @@ export class Runtime {
 
   dotykNepriatela(zhora: boolean, nepriatel: NepriatelApi): void {
     for (const h of this.register.nepriatelia) this.volajHacik(h, [zhora, nepriatel])
+  }
+
+  /** Panáčik práve vyskočil zo zeme – háčiky `onJump`. */
+  skokHraca(): void {
+    for (const h of this.register.skoky) this.volajHacik(h, [])
   }
 
   /** Kláves práve stlačená (KeyboardEvent.code) – háčiky `onKeyPress`. */

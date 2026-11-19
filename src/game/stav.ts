@@ -8,7 +8,20 @@ export interface Nastavenia {
   jump: number
   gravity: number
   speed: number
+  /** nie je v predvolenom settings.ts – študent ho objaví cez napovedanie */
   size: number
+  /** farby: názov ("red") alebo #kód; hra ich prevedie cez canvas (viď farby.ts) */
+  coinColor: string
+  playerColor: string
+}
+
+export type CiselneNastavenie = 'jump' | 'gravity' | 'speed' | 'size'
+export type FarebneNastavenie = 'coinColor' | 'playerColor'
+
+/** Pôvodné farby z pixel-artu (textury.ts). */
+export const PREDVOLENE_FARBY: Readonly<Record<FarebneNastavenie, string>> = {
+  coinColor: '#f7c933',
+  playerColor: '#e2483d',
 }
 
 /** Správne (funkčné) hodnoty – riešenie pre učiteľa. */
@@ -17,6 +30,7 @@ export const SPRAVNE_NASTAVENIA: Readonly<Nastavenia> = {
   gravity: 1000,
   speed: 220,
   size: 1,
+  ...PREDVOLENE_FARBY,
 }
 
 /**
@@ -30,26 +44,32 @@ export const ZAKLADNE_NASTAVENIA: Readonly<Nastavenia> = {
   gravity: 300, // „mesačná“ – panáčik pláva, po oprave skoku narazí do stropu
   speed: SPRAVNE_NASTAVENIA.speed,
   size: SPRAVNE_NASTAVENIA.size,
+  ...PREDVOLENE_FARBY,
 }
 
 /** seal: preklep `settings.jumpp = 5` vyhodí chybu namiesto tichého ignorovania */
 export const nastavenia: Nastavenia = Object.seal({ ...ZAKLADNE_NASTAVENIA })
 
 /** Bezpečné limity – nech študent zadá čokoľvek, fyzika sa nerozbije. */
-const LIMITY: Record<keyof Nastavenia, [number, number]> = {
+const LIMITY: Record<CiselneNastavenie, [number, number]> = {
   jump: [0, 3000],
   gravity: [-5000, 5000],
   speed: [0, 2000],
   size: [0.2, 4],
 }
 
-const poslednePlatne: Nastavenia = { ...SPRAVNE_NASTAVENIA }
+const poslednePlatne: Record<CiselneNastavenie, number> = {
+  jump: SPRAVNE_NASTAVENIA.jump,
+  gravity: SPRAVNE_NASTAVENIA.gravity,
+  speed: SPRAVNE_NASTAVENIA.speed,
+  size: SPRAVNE_NASTAVENIA.size,
+}
 
 /**
  * Prečíta nastavenie bezpečne: ak študent priradí text, NaN alebo Infinity,
  * použije sa posledná platná hodnota; čísla mimo rozsah sa orežú.
  */
-export function citaj(kluc: keyof Nastavenia): number {
+export function citaj(kluc: CiselneNastavenie): number {
   const v = nastavenia[kluc] as unknown
   if (typeof v === 'number' && Number.isFinite(v)) {
     const [min, max] = LIMITY[kluc]

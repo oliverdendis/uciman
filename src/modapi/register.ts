@@ -31,8 +31,9 @@ export class Register {
   readonly mince: Hacik<AkciaMince>[] = []
   readonly nepriatelia: Hacik<AkciaNepriatela>[] = []
   readonly klavesy: KlavesovyHacik[] = []
+  readonly skoky: Hacik<() => void>[] = []
 
   get pocet(): number {
-    return this.cheaty.length + this.mince.length + this.nepriatelia.length + this.klavesy.length
+    return this.cheaty.length + this.mince.length + this.nepriatelia.length + this.klavesy.length + this.skoky.length
   }
 }

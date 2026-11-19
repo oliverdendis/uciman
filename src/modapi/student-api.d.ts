@@ -12,7 +12,23 @@ declare const settings: {
   speed: number
   /** Veľkosť panáčika. 1 = normálna, 2 = dvakrát väčší, 0.5 = polovičný. */
   size: number
+  /**
+   * Farba mincí – anglický názov farby alebo #kód.
+   * @example settings.coinColor = "red"
+   */
+  coinColor: Farba
+  /**
+   * Farba trička panáčika – anglický názov farby alebo #kód.
+   * @example settings.playerColor = "#00cc66"
+   */
+  playerColor: Farba
 }
+
+/** Farba: anglický názov ako "red", "blue", "hotpink" alebo #kód ako "#ff00ff". */
+type Farba =
+  | 'red' | 'orange' | 'yellow' | 'gold' | 'green' | 'lime' | 'cyan' | 'blue'
+  | 'purple' | 'magenta' | 'hotpink' | 'white' | 'black' | 'gray' | 'brown'
+  | (string & {})
 
 /** Panáčik, ktorého ovládaš. */
 declare const player: {
@@ -46,7 +62,7 @@ declare const player: {
 
 /**
  * Skóre hráča. Môžeš ho čítať aj meniť.
- * @example score += 1
+ * @example score = score + 10
  */
 declare let score: number
 
@@ -67,7 +83,7 @@ declare function cheat(code: string, action: () => void): void
 /**
  * Spustí sa vždy, keď panáčik zoberie mincu.
  * @param action čo sa má stať
- * @example onCoinCollect(() => { score += 1 })
+ * @example onCoinCollect(() => { print("Mám mincu!") })
  */
 declare function onCoinCollect(action: () => void): void
 
@@ -80,6 +96,13 @@ declare function onCoinCollect(action: () => void): void
  * })
  */
 declare function onEnemyTouch(action: (fromAbove: boolean, enemy: Enemy) => void): void
+
+/**
+ * Spustí sa vždy, keď panáčik vyskočí.
+ * @param action čo sa má stať
+ * @example onJump(() => { print("Hop!") })
+ */
+declare function onJump(action: () => void): void
 
 /**
  * Zobrazí bublinu s textom nad panáčikom.

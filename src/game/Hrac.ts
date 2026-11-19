@@ -21,6 +21,8 @@ export class Hrac extends Phaser.Physics.Arcade.Sprite {
   /** nastaví `chod()` zo študentského ovládania; po každom snímku sa vynuluje */
   private rychlostChodze = 0
   readonly dazdnik: Phaser.GameObjects.Image
+  /** zavolá sa pri každom skoku zo zeme (študentský `onJump`) */
+  naSkok: (() => void) | null = null
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y, 'hrac-stoj')
@@ -66,6 +68,7 @@ export class Hrac extends Phaser.Physics.Arcade.Sprite {
     this.body.setVelocityY(-this.smerGravitacie * sila)
     this.poslednaZem = -Infinity
     this.poslednyPokusOSkok = -Infinity
+    this.naSkok?.()
   }
 
   odrazOdNepriatela(): void {

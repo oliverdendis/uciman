@@ -20,8 +20,11 @@ const ZRUSENIE_POTVRDENIA_MS = 6000
 export function vytvorPanel(koren: HTMLElement, moznosti: MoznostiPanela): Panel {
   koren.innerHTML = `
     <div class="panel-hlavicka">
-      <h1>Hra je pokazená</h1>
-      <p>Oprav ju v kóde – zmeny sa prejavia hneď, bez reštartu.</p>
+      <img class="logo" src="./logo-ucm.svg" alt="UCM" width="44" height="44" />
+      <div>
+        <h1>Hra je pokazená</h1>
+        <p>Oprav ju v kóde – zmeny sa prejavia hneď, bez reštartu.</p>
+      </div>
     </div>
     <div class="panel-obsah panel-kod"></div>
     ${

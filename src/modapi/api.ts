@@ -20,6 +20,7 @@ export const MENA_API = [
   'cheat',
   'onCoinCollect',
   'onEnemyTouch',
+  'onJump',
   'onKeyPress',
   'whileKeyHeld',
   'print',
@@ -111,6 +112,10 @@ export function vytvorApi(register: Register): Record<(typeof MENA_API)[number],
     onEnemyTouch: (akcia: unknown) => {
       overFunkciu('onEnemyTouch', akcia)
       register.nepriatelia.push({ nazov: 'onEnemyTouch', akcia: akcia as AkciaNepriatela, vypnuty: false })
+    },
+    onJump: (akcia: unknown) => {
+      overFunkciu('onJump', akcia)
+      register.skoky.push({ nazov: 'onJump', akcia: akcia as () => void, vypnuty: false })
     },
     onKeyPress: (klavesa: unknown, akcia: unknown) => {
       const kod = overKlavesu('onKeyPress', klavesa)

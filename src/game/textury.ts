@@ -1,4 +1,6 @@
 import Phaser from 'phaser'
+import { naHex, stmav } from './farby'
+import { nastavenia, PREDVOLENE_FARBY } from './stav'
 
 /**
  * Pixel-art textúry generované v kóde (žiadne sťahovanie, žiadne CDN).
@@ -36,22 +38,30 @@ const PALETA: Record<string, string> = {
   e: '#9aa0b8', // sivá
 }
 
-function zPixelov(scene: Phaser.Scene, kluc: string, riadky: readonly string[], mierka: number): void {
-  if (scene.textures.exists(kluc)) return
-  const w = Math.max(...riadky.map((r) => r.length))
-  const h = riadky.length
-  const tex = scene.textures.createCanvas(kluc, w * mierka, h * mierka)
-  if (!tex) return
+function nakresli(
+  tex: Phaser.Textures.CanvasTexture,
+  riadky: readonly string[],
+  mierka: number,
+  paleta: Record<string, string>,
+): void {
   const ctx = tex.getContext()
+  ctx.clearRect(0, 0, tex.width, tex.height)
   riadky.forEach((riadok, y) => {
     for (let x = 0; x < riadok.length; x++) {
-      const farba = PALETA[riadok[x]]
+      const farba = paleta[riadok[x]]
       if (!farba) continue
       ctx.fillStyle = farba
       ctx.fillRect(x * mierka, y * mierka, mierka, mierka)
     }
   })
   tex.refresh()
+}
+
+function zPixelov(scene: Phaser.Scene, kluc: string, riadky: readonly string[], mierka: number): void {
+  if (scene.textures.exists(kluc)) return
+  const w = Math.max(...riadky.map((r) => r.length))
+  const tex = scene.textures.createCanvas(kluc, w * mierka, riadky.length * mierka)
+  if (tex) nakresli(tex, riadky, mierka, PALETA)
 }
 
 function zFunkcie(scene: Phaser.Scene, kluc: string, w: number, h: number, mierka: number, fn: (x: number, y: number) => string): void {
@@ -218,5 +228,56 @@ function vytvorPozadie(scene: Phaser.Scene): void {
       ctx.fillRect(x, H - v, 2, v)
     }
     tex.refresh()
+  }
+}
+
+// ---------------------------------------------------------------- farby od študenta
+
+interface Prefarbitelne {
+  /** nastavenie, z ktorého berieme farbu */
+  nastavenie: 'coinColor' | 'playerColor'
+  textury: { kluc: string; riadky: readonly string[]; mierka: number }[]
+  /** znak v palete pre svetlú a tmavú časť */
+  svetla: string
+  tmava: string
+}
+
+const PREFARBITELNE: readonly Prefarbitelne[] = [
+  { nastavenie: 'coinColor', textury: [{ kluc: 'minca', riadky: MINCA, mierka: 2 }], svetla: 'y', tmava: 'Y' },
+  {
+    nastavenie: 'playerColor',
+    textury: [
+      { kluc: 'hrac-stoj', riadky: [...HLAVA, ...NOHY_STOJ], mierka: 2 },
+      { kluc: 'hrac-krok', riadky: [...HLAVA, ...NOHY_KROK], mierka: 2 },
+    ],
+    svetla: 'r',
+    tmava: 'R',
+  },
+]
+
+/** posledný text z nastavení a farba, ktorou je textúra práve nakreslená */
+const posledne = new Map<string, { text: unknown; hex: string }>()
+
+/**
+ * Volá sa každý snímok. Textúru prekreslí, iba keď sa farba naozaj zmení;
+ * neplatnú farbu (študent ešte píše) ignoruje a nechá poslednú platnú.
+ */
+export function aktualizujFarby(scene: Phaser.Scene): void {
+  for (const p of PREFARBITELNE) {
+    const text = nastavenia[p.nastavenie]
+    const stav = posledne.get(p.nastavenie)
+    if (stav && stav.text === text) continue
+    const hex = naHex(text)
+    if (!hex || hex === stav?.hex) {
+      if (stav) stav.text = text
+      continue
+    }
+    posledne.set(p.nastavenie, { text, hex })
+    const paleta =
+      hex === PREDVOLENE_FARBY[p.nastavenie] ? PALETA : { ...PALETA, [p.svetla]: hex, [p.tmava]: stmav(hex) }
+    for (const t of p.textury) {
+      const tex = scene.textures.get(t.kluc)
+      if (tex instanceof Phaser.Textures.CanvasTexture) nakresli(tex, t.riadky, t.mierka, paleta)
+    }
   }
 }

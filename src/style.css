@@ -90,7 +90,8 @@ html, body {
   border-left: 1px solid var(--border);
 }
 
-.panel-hlavicka { padding: 14px 16px 10px; }
+.panel-hlavicka { padding: 14px 16px 10px; display: flex; align-items: center; gap: 12px; }
+.panel-hlavicka .logo { flex: none; width: 44px; height: 44px; }
 .panel-hlavicka h1 { margin: 0 0 4px; font-size: 20px; }
 .panel-hlavicka p { margin: 0; color: var(--text-dim); font-size: 14px; }
 

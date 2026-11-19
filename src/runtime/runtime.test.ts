@@ -278,3 +278,34 @@ describe('ovládanie (onKeyPress / whileKeyHeld)', () => {
     expect(chyby[0].sprava).toContain('player.walk potrebuje číslo')
   })
 })
+
+describe('farby v nastaveniach', () => {
+  it('farba nie je v súbore, ale dá sa nastaviť; zmazanie vráti pôvodnú', () => {
+    expect(rt.spusti(subory('settings.coinColor = "red"')).ok).toBe(true)
+    expect(nastavenia.coinColor).toBe('red')
+    expect(rt.spusti(subory('')).ok).toBe(true)
+    expect(nastavenia.coinColor).toBe(ZAKLADNE_NASTAVENIA.coinColor)
+  })
+
+  it('farba, ktorá nie je text, je chyba s riadkom a ostane stará verzia', () => {
+    rt.spusti(subory('settings.playerColor = "blue"'))
+    const r = rt.spusti(subory('settings.jump = 500\nsettings.playerColor = 5'))
+    expect(r.ok).toBe(false)
+    if (!r.ok) {
+      expect(r.chyba.sprava).toContain('Neznáma farba „5“')
+      expect(r.chyba).toMatchObject({ subor: 'settings.ts', riadok: 2 })
+    }
+    expect(nastavenia.playerColor).toBe('blue')
+    expect(nastavenia.jump).toBe(120)
+  })
+})
+
+describe('onJump (skrytý listener)', () => {
+  it('nie je v predvolených súboroch, ale funguje, keď ho študent napíše', () => {
+    for (const kod of Object.values(BUGOVE_SUBORY)) expect(kod).not.toContain('onJump')
+    expect(rt.spusti(subory('', 'onJump(() => { score = score + 1 })')).ok).toBe(true)
+    rt.skokHraca()
+    rt.skokHraca()
+    expect(stavHry.skore).toBe(2)
+  })
+})

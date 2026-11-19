@@ -3,7 +3,7 @@ import { Hrac } from './Hrac'
 import { Nepriatel } from './Nepriatel'
 import { level, SIRKA, T, VYSKA, ZEM_Y } from './level'
 import { nastavSkore, nastavZivoty, resetujLevelovyStav, stavHry } from './stav'
-import { vytvorTextury } from './textury'
+import { aktualizujFarby, vytvorTextury } from './textury'
 import { napojHraca } from '../modapi/most'
 import { runtime } from '../runtime/runtime'
 import { udalosti } from './udalosti'
@@ -51,6 +51,7 @@ export class HraScena extends Phaser.Scene {
     this.respawnBod = { x: sc * T + T / 2, y: sr * T }
     this.hrac = new Hrac(this, this.respawnBod.x, this.respawnBod.y)
     this.physics.add.collider(this.hrac, pevne)
+    this.hrac.naSkok = () => runtime.skokHraca()
     const hrac = this.hrac
     napojHraca({
       get x() {
@@ -124,6 +125,7 @@ export class HraScena extends Phaser.Scene {
       KLAVESY_SKOKU.some((k) => this.drzane.has(k)),
       cas,
     )
+    aktualizujFarby(this)
     for (const n of this.nepriatelia) if (n.active) n.aktualizuj(delta)
     this.bublina?.setPosition(this.hrac.x, this.hrac.y - this.hrac.displayHeight / 2 - 14)
 

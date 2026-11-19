@@ -28,6 +28,17 @@ Priebežný zoznam. Formát: `[ ]` otvorené, `[x]` vyriešené. Za pomlčkou je
   Komentáre, nápovedy (JSDoc) a chybové hlášky ostávajú po slovensky. Vnútorný kód hry ostáva
   po slovensky (študent ho nevidí).
 
+- **Skryté nastavenia** (dohoda 2026-11-19): `settings.coinColor`, `settings.playerColor`
+  (tričko) a `settings.size` nie sú v predvolenom `settings.ts` – študent ich objaví cez
+  napovedanie po napísaní `settings.`. Farba = CSS názov alebo #kód; neznáma farba je chyba
+  s riadkom. Textúry sa prekresľujú v palete (`aktualizujFarby` v `textury.ts`).
+
+- **Stručné komentáre a `score = score - 1`** (dohoda 2026-11-19): komentáre bez jednotiek a
+  nápovedí („// výška skoku“, „// Nastavenia hry“); skóre zapisujeme celé, `+=` nemusia poznať.
+  Skrytý listener `onJump` (nie je v súboroch, nájdu ho v napovedaní). Kľúč úložiska v4.
+- **Logo UCM** v paneli a ako ikona karty (`public/logo-ucm.svg`). Je **prekreslené podľa
+  obrázka** – [ ] nahradiť oficiálnym SVG z UCM, ak ho máme.
+
 ## Rozhodnutia
 - [x] **Nepriatelia:** náraz z boku uberá život v jadre hry, háčik rieši „navyše“; ak háčik
       nepriateľa zničí, hráč nestratí život. Riešenie = `if (zhora) nepriatel.znic()`. Potvrdené. — M2/M5
@@ -46,6 +57,8 @@ Priebežný zoznam. Formát: `[ ]` otvorené, `[x]` vyriešené. Za pomlčkou je
       misia zrušená spolu s bugom rýchlosti. Chodenie po strope ostáva ako vtipný efekt bugu. — M1/M5
 - [ ] Pri niektorých pomeroch strán ostanú nad/pod hrou tmavé pásy (min. šírka 800 px
       = 25 dlaždíc, aby bol vidieť dosť levelu). — M1
+- [ ] E2E testy so `--repeat-each` pod veľkou záťažou občas zlyhajú na časovaní (klávesy
+      počas štartu hry). Samostatne prechádzajú; test šípky už čaká na štart hry. — testy
 - [ ] FPS v headless prehliadači ~55 – overiť 60 FPS na reálnom školskom PC. — M1
 - [x] Rýchle ťuknutie na skok sa strácalo (Phaser JustDown) → skok sa chytá z keydown. — M1
 - [x] Canvas vytláčal HUD a tlačidlá mimo obrazovky pri 1366×768. — M1
